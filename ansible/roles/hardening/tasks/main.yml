@@ -1,1 +1,36 @@
+- name: Ensure all packages are updated (patch management)
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+  register: patch_result
 
+- name: Disable root SSH login
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin no'
+  notify: restart sshd
+
+- name: Enforce password-less sudo is disabled for app user
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers.d/appuser
+    create: yes
+    line: "appuser ALL=(ALL) PASSWD: ALL"
+    mode: '0440'
+
+- name: Ensure firewalld is enabled and running
+  ansible.builtin.systemd:
+    name: firewalld
+    enabled: true
+    state: started
+
+- name: Install and enable auditd for audit logging (HIPAA §164.312 audit control)
+  ansible.builtin.dnf:
+    name: audit
+    state: present
+
+- name: Enable auditd service
+  ansible.builtin.systemd:
+    name: auditd
+    enabled: true
+    state: started
