@@ -1,1 +1,30 @@
+- name: Create application user
+  ansible.builtin.user:
+    name: "{{ app_user }}"
+    system: yes
+    shell: /sbin/nologin
 
+- name: Pull application artifact from S3
+  ansible.builtin.command: >
+    aws s3 cp s3://lab-app-artifacts/app-latest.tar.gz /opt/app.tar.gz
+  args:
+    creates: /opt/app.tar.gz
+
+- name: Extract application
+  ansible.builtin.unarchive:
+    src: /opt/app.tar.gz
+    dest: /opt/app
+    remote_src: yes
+
+- name: Template application environment file
+  ansible.builtin.template:
+    src: app.env.j2
+    dest: /opt/app/.env
+    owner: "{{ app_user }}"
+    mode: '0600'
+
+- name: Start application service
+  ansible.builtin.systemd:
+    name: app
+    enabled: true
+    state: restarted
