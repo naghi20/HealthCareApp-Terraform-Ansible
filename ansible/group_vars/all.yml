@@ -1,1 +1,10 @@
-
+app_port: 80
+app_user: appuser
+db_host: "{{ hostvars['localhost']['db_endpoint'] | default('') }}"
+Use code with caution.ansible/site.ymlyaml- name: Configure and deploy the healthcare web app platform
+  hosts: role_webapp
+  become: yes
+  roles:
+    - hardening
+    - webserver
+    - app_deploy
