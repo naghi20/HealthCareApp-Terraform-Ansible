@@ -1,7 +1,3 @@
-
-
-                  InfraStructure Design 
-               
 # 🏥 Secure 3-Tier Healthcare Web Application Platform
 
 An enterprise-grade, highly available infrastructure environment built on AWS using **Terraform** for resource provisioning and **Ansible** for automated compliance configurations. The architecture is engineered to satisfy strict security benchmarks by ensuring total data isolation, restricted admin access, and comprehensive audit controls.
