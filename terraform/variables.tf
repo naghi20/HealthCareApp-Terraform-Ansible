@@ -1,1 +1,10 @@
-
+variable "aws_region" { default = "us-east-1" }
+variable "vpc_cidr" { default = "10.20.0.0/16" }
+variable "azs" { default = ["us-east-1a", "us-east-1b"] }
+variable "public_subnets" { default = ["10.20.0.0/24", "10.20.1.0/24"] }
+variable "app_subnets" { default = ["10.20.10.0/24", "10.20.11.0/24"] }
+variable "db_subnets" { default = ["10.20.20.0/24", "10.20.21.0/24"] }
+variable "key_name" { default = "adi-lab-key" }
+variable "instance_type" { default = "t3.micro" }
+variable "db_username" { default = "labadmin" }
+variable "db_password" { sensitive = true }
