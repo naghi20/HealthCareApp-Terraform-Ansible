@@ -1,31 +1,8 @@
 
 
                InfraStructure Design 
-
-
-                          |
-                 [ Internet Gateway ]
-                           |
-============================================================
-
-|  Public Subnet AZ-a        |  Public Subnet AZ-b         |
-|  - Bastion Host            |  - NAT Gateway              |
-|  - ALB (Multi-AZ)          |  - ALB (Multi-AZ)           |
-============================================================
-                            |
-============================================================
-
-|  Private App Subnet AZ-a   |  Private App Subnet AZ-b    |
-|  - EC2 (Auto Scaling)      |  - EC2 (Auto Scaling)       |
-============================================================
-                            |
-============================================================
-
-|  Private DB Subnet AZ-a    |  Private DB Subnet AZ-b     |
-|  - RDS MySQL (Primary)     |  - RDS MySQL (Standby)      |
-============================================================
-
-
+               
+<img width="1408" height="768" alt="image" src="https://github.com/user-attachments/assets/5fd7b343-75c7-4fb4-ac59-1fc69afbffaf" />
 
 🔒 Key Security Controls Built-InZero Public IPs: No application server or database instance is assigned a public IP (p. 3).Least Privilege Security Groups: Ingress rules point directly to specific security groups rather than open CIDR blocks (p. 9).Credential-Free EC2: Instances utilize AWS Systems Manager (SSM) Instance Profiles instead of hardcoded IAM access keys on disk (p. 10).HIPAA Compliance Hardening: Automated CIS-style OS patching, disabled root SSH logins, and full audit logging via auditd (p. 15).
 
