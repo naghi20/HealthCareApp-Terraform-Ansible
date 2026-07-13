@@ -1,0 +1,12 @@
+nginxserver {
+    listen 80;
+    location /health {
+        root /usr/share/nginx/html;
+        try_files /health =200;
+    }
+    location / {
+        proxy_pass http://127.0.0.1:{{ app_port }};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
