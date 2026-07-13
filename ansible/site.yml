@@ -1,1 +1,8 @@
 
+- name: Configure and deploy the healthcare web app platform
+  hosts: role_webapp
+  become: yes
+  roles:
+    - hardening
+    - webserver
+    - app_deploy
