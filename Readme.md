@@ -2,7 +2,15 @@
 
                   InfraStructure Design 
                
+# 🏥 Secure 3-Tier Healthcare Web Application Platform
+
+An enterprise-grade, highly available infrastructure environment built on AWS using **Terraform** for resource provisioning and **Ansible** for automated compliance configurations. The architecture is engineered to satisfy strict security benchmarks by ensuring total data isolation, restricted admin access, and comprehensive audit controls.
+
+---
+
+## 🗺️ Infrastructure Design
 <img width="1408" height="768" alt="image" src="https://github.com/user-attachments/assets/5fd7b343-75c7-4fb4-ac59-1fc69afbffaf" />
+
 # 🏥 Secure 3-Tier Healthcare Web Application Platform
 
 An enterprise-grade, highly available infrastructure environment built on AWS using **Terraform** for resource provisioning and **Ansible** for automated compliance configurations. The architecture is engineered to satisfy strict security benchmarks by ensuring total data isolation, restricted admin access, and comprehensive audit controls.
@@ -53,6 +61,8 @@ tf-ansible-lab/
 
 ## 🛠️ System Configuration Breakdown
 
+<div>
+
 ### 🔷 Core Network Layer
 * **Resource File:** `terraform/vpc.tf`
 * **Infrastructure Components:** Provisions the isolated Virtual Private Cloud (`VPC`), Internet Gateway, NAT Gateway routing systems, and explicit path configurations.
@@ -97,9 +107,13 @@ tf-ansible-lab/
 * **Resource File:** `terraform/outputs.tf`
 * **Pipeline Interoperability:** Generates clean terminal configuration flags including target load balancer URLs and Bastion endpoints upon successful execution loops.
 
+</div>
+
 ---
 
 ## ⚙️ Automated Configuration Management
+
+<div>
 
 ### 🔶 Orchestration Settings
 * **Resource File:** `ansible/ansible.cfg`
@@ -127,6 +141,8 @@ tf-ansible-lab/
 ### 🔶 Application Pipeline Deployment
 * **Resource File:** `ansible/roles/app_deploy/tasks/main.yml`
 * **Artifact Injection:** Instantiates standard isolated runtime accounts, secures environment target variable objects (`app.env.j2`), and safely pulls validated build artifacts out of cloud object storage.
+
+</div>
 
 ---
 
@@ -191,4 +207,5 @@ curl http://$(terraform output -raw alb_dns_name)/health
 
 # Access the running platform homepage
 curl http://$(terraform output -raw alb_dns_name)/
-```
+
+🔧 Troubleshooting Common HurdlesAnsible UNREACHABLE / SSH Timeout: If the Bastion Host was recreated, your proxy configurations may be holding a stale IP address. Run terraform output bastion_public_ip to verify, then update ansible/ansible.cfg.ALB Health Checks Failing: If instances continuously cycle out of service, the Nginx application deployment role likely failed before registration occurred. Inspect logs via AWS Systems Manager Session Manager.Dynamic Inventory Finds 0 Hosts: Verify your local AWS environment identity possesses the ec2:DescribeInstances permission. The dynamic inventory engine depends on this to query active tags.🧹 CleanupAvoid ongoing cloud billing charges by tearing down infrastructure resources immediately after testing. Always review a destruction plan first when managing assets in shared organizational accounts.```bashcd terraformterraform destroy -auto-approveOptionally remove the state bootstrap resourcesaws dynamodb delete-table --table-name terraform-lock-tableaws s3 rb s3://adi-lab-tfstate-2026 --force
