@@ -21,7 +21,11 @@ Repository Directory Structuretexttf-ansible-lab/
         ├── hardening/tasks/main.yml
         ├── webserver/tasks/main.yml
         └── app_deploy/tasks/main.yml
-Use code with caution.🛠️ Terraform Configuration Filesterraform/backend.tfhclterraform {
+
+🛠️ Terraform Configuration Files 
+
+terraform/backend.tf
+terraform {
   required_version = ">= 1.7.0"
   backend "s3" {
     bucket         = "adi-lab-tfstate-2026"
@@ -41,7 +45,9 @@ Use code with caution.🛠️ Terraform Configuration Filesterraform/backend.tfh
 provider "aws" {
   region = var.aws_region
 }
-Use code with caution.terraform/variables.tfhclvariable "aws_region" { default = "us-east-1" }
+---------------------------------
+terraform/variables.tf
+variable "aws_region" { default = "us-east-1" }
 variable "vpc_cidr" { default = "10.20.0.0/16" }
 variable "azs" { default = ["us-east-1a", "us-east-1b"] }
 variable "public_subnets" { default = ["10.20.0.0/24", "10.20.1.0/24"] }
@@ -51,7 +57,9 @@ variable "key_name" { default = "adi-lab-key" }
 variable "instance_type" { default = "t3.micro" }
 variable "db_username" { default = "labadmin" }
 variable "db_password" { sensitive = true }
-Use code with caution.terraform/vpc.tfhclresource "aws_vpc" "main" {
+----------------------------------
+terraform/vpc.tf
+resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -133,7 +141,9 @@ resource "aws_route_table_association" "db" {
   subnet_id      = aws_subnet.db[count.index].id
   route_table_id = aws_route_table.private.id
 }
-Use code with caution.terraform/security-groups.tfhclresource "aws_security_group" "bastion" {
+-----------------------------------------
+terraform/security-groups.tf
+resource "aws_security_group" "bastion" {
   name   = "lab-bastion-sg"
   vpc_id = aws_vpc.main.id
   ingress {
@@ -211,7 +221,9 @@ resource "aws_security_group" "db" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-Use code with caution.terraform/iam.tfhclresource "aws_iam_role" "app_role" {
+---------------------------
+terraform/iam.tf
+resource "aws_iam_role" "app_role" {
   name = "lab-app-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -232,7 +244,9 @@ resource "aws_iam_instance_profile" "app_profile" {
   name = "lab-app-instance-profile"
   role = aws_iam_role.app_role.name
 }
-Use code with caution.terraform/bastion.tfhclresource "aws_instance" "bastion" {
+----------------------
+terraform/bastion.tf
+resource "aws_instance" "bastion" {
   ami                    = data.aws_ami.al2023.id
   instance_type          = "t3.micro"
   subnet_id              = aws_subnet.public[0].id
@@ -249,7 +263,9 @@ data "aws_ami" "al2023" {
     values = ["al2023-ami-*-x86_64"]
   }
 }
-Use code with caution.terraform/alb.tfhclresource "aws_lb" "app" {
+------------------
+terraform/alb.tf
+resource "aws_lb" "app" {
   name               = "lab-app-alb"
   internal           = false
   load_balancer_type = "application"
@@ -279,7 +295,9 @@ resource "aws_lb_listener" "http" {
     target_group_arn = aws_lb_target_group.app.arn
   }
 }
-Use code with caution.terraform/asg-app.tf(Includes Scenario 9's automated Ansible trigger resource) (p. 17)hclresource "aws_launch_template" "app" {
+----------------------------
+terraform/asg-app.tf
+resource "aws_launch_template" "app" {
   name_prefix            = "lab-app-"
   image_id               = data.aws_ami.al2023.id
   instance_type          = var.instance_type
@@ -333,7 +351,9 @@ resource "null_resource" "run_ansible" {
     asg_id = aws_autoscaling_group.app.id
   }
 }
-Use code with caution.terraform/rds.tfhclresource "aws_db_subnet_group" "db" {
+-------------------------
+terraform/rds.tf
+resource "aws_db_subnet_group" "db" {
   name       = "lab-db-subnet-group"
   subnet_ids = aws_subnet.db[*].id
 }
@@ -354,7 +374,9 @@ resource "aws_db_instance" "app_db" {
   backup_retention_period = 7
   publicly_accessible    = false
 }
-Use code with caution.terraform/outputs.tfhcloutput "bastion_public_ip" {
+----------------------
+terraform/outputs.tf
+output "bastion_public_ip" {
   value = aws_instance.bastion.public_ip
 }
 
@@ -366,7 +388,12 @@ output "db_endpoint" {
   value     = aws_db_instance.app_db.endpoint
   sensitive = true
 }
-Use code with caution.📜 Ansible Configuration Filesansible/ansible.cfgini[defaults]
+=========================================================================================
+
+
+📜 Ansible Configuration
+
+Files  ansible/ansible.cfgini[defaults]
 inventory = ./inventory/aws_ec2.yml
 host_key_checking = False
 retry_files_enabled = False
@@ -386,7 +413,10 @@ hostnames:
   - private-ip-address
 compose:
   ansible_host: private_ip_address
-Use code with caution.ansible/group_vars/all.ymlyamlapp_port: 80
+-------------------------
+
+ansible/group_vars/all.yml
+app_port: 80
 app_user: appuser
 db_host: "{{ hostvars['localhost']['db_endpoint'] | default('') }}"
 Use code with caution.ansible/site.ymlyaml- name: Configure and deploy the healthcare web app platform
@@ -396,7 +426,9 @@ Use code with caution.ansible/site.ymlyaml- name: Configure and deploy the healt
     - hardening
     - webserver
     - app_deploy
-Use code with caution.ansible/roles/hardening/tasks/main.ymlyaml- name: Ensure all packages are updated (patch management)
+------------------------
+ansible/roles/hardening/tasks/main.yml
+- name: Ensure all packages are updated (patch management)
   ansible.builtin.dnf:
     name: "*"
     state: latest
@@ -432,7 +464,10 @@ Use code with caution.ansible/roles/hardening/tasks/main.ymlyaml- name: Ensure a
     name: auditd
     enabled: true
     state: started
-Use code with caution.ansible/roles/webserver/tasks/main.ymlyaml- name: Install nginx
+---------------------------------
+ansible/roles/webserver/tasks/main.yml
+
+- name: Install nginx
   ansible.builtin.dnf:
     name: nginx
     state: present
@@ -454,7 +489,10 @@ Use code with caution.ansible/roles/webserver/tasks/main.ymlyaml- name: Install 
     name: nginx
     enabled: true
     state: started
-Use code with caution.ansible/roles/webserver/templates/nginx.conf.j2(Note: Placed here as it's required by the webserver role config) (pp. 15-16)nginxserver {
+-------------------
+ansible/roles/webserver/templates/nginx.conf.j2  
+
+nginxserver {
     listen 80;
     location /health {
         root /usr/share/nginx/html;
@@ -466,7 +504,10 @@ Use code with caution.ansible/roles/webserver/templates/nginx.conf.j2(Note: Plac
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
-Use code with caution.ansible/roles/app_deploy/tasks/main.ymlyaml- name: Create application user
+-------------------------------
+ansible/roles/app_deploy/tasks/main.yml
+
+- name: Create application user
   ansible.builtin.user:
     name: "{{ app_user }}"
     system: yes
@@ -496,7 +537,10 @@ Use code with caution.ansible/roles/app_deploy/tasks/main.ymlyaml- name: Create 
     name: app
     enabled: true
     state: restarted
-Use code with caution.If you need help setting up your GitHub Actions workflows to automate this deployment or want me to create the README.md file detailing the architectural steps and deployment execution commands for this repository, let me know!AI can make mistakes, so double-check responses You said: create read me file as well🏥 Secure 3-Tier Healthcare Web Application Platform (Terraform + Ansible)This repository contains the complete Infrastructure as Code (IaC) and Configuration Management to provision and configure a secure, repeatable, 3-tier web application environment on AWS (pp. 1-2). The architecture is designed to satisfy strict compliance frameworks such as HIPAA and HITRUST by ensuring data isolation, restricted admin access, and comprehensive audit controls (pp. 2, 9, 15).🏗️ Architecture OverviewThe system architecture follows a zero-direct-public-access model across two Availability Zones (pp. 2-3):Public Tier: Contains an Application Load Balancer (ALB) and a hardened Bastion Host (pp. 2-3).Private App Tier: Hosts an Auto Scaling Group (ASG) of EC2 application servers (pp. 2-3).Isolated Private DB Tier: Runs a highly available MySQL RDS instance (pp. 2-3).text       Internet
+--------------------
+If you need help setting up your GitHub Actions workflows to automate this deployment or want me to create the README.md file detailing the architectural steps and deployment execution commands for this repository, let me know!AI can make mistakes, so double-check responses You said: create read me file as well🏥 Secure 3-Tier Healthcare Web Application Platform (Terraform + Ansible)This repository contains the complete Infrastructure as Code (IaC) and Configuration Management to provision and configure a secure, repeatable, 3-tier web application environment on AWS (pp. 1-2). The architecture is designed to satisfy strict compliance frameworks such as HIPAA and HITRUST by ensuring data isolation, restricted admin access, and comprehensive audit controls (pp. 2, 9, 15).🏗️ Architecture OverviewThe system architecture follows a zero-direct-public-access model across two Availability Zones (pp. 2-3):Public Tier: Contains an Application Load Balancer (ALB) and a hardened Bastion Host (pp. 2-3).Private App Tier: Hosts an Auto Scaling Group (ASG) of EC2 application servers (pp. 2-3).Isolated Private DB Tier: Runs a highly available MySQL RDS instance (pp. 2-3).
+
+
           |
   [ Internet Gateway ]
           |
@@ -518,7 +562,8 @@ Use code with caution.If you need help setting up your GitHub Actions workflows 
 |  Private DB Subnet AZ-a    |  Private DB Subnet AZ-b     |
 |  - RDS MySQL (Primary)     |  - RDS MySQL (Standby)      |
 ============================================================
-Use code with caution.🔒 Key Security Controls Built-InZero Public IPs: No application server or database instance is assigned a public IP (p. 3).Least Privilege Security Groups: Ingress rules point directly to specific security groups rather than open CIDR blocks (p. 9).Credential-Free EC2: Instances utilize AWS Systems Manager (SSM) Instance Profiles instead of hardcoded IAM access keys on disk (p. 10).HIPAA Compliance Hardening: Automated CIS-style OS patching, disabled root SSH logins, and full audit logging via auditd (p. 15).📂 Repository Structuretexttf-ansible-lab/
+
+🔒 Key Security Controls Built-InZero Public IPs: No application server or database instance is assigned a public IP (p. 3).Least Privilege Security Groups: Ingress rules point directly to specific security groups rather than open CIDR blocks (p. 9).Credential-Free EC2: Instances utilize AWS Systems Manager (SSM) Instance Profiles instead of hardcoded IAM access keys on disk (p. 10).HIPAA Compliance Hardening: Automated CIS-style OS patching, disabled root SSH logins, and full audit logging via auditd (p. 15).📂 Repository Structuretexttf-ansible-lab/
 ├── terraform/                  # Infrastructure provisioning
 │   ├── backend.tf              # Remote state definition
 │   ├── variables.tf            # Configurable network & sizing parameters
@@ -541,7 +586,8 @@ Use code with caution.🔒 Key Security Controls Built-InZero Public IPs: No app
         ├── hardening/          # OS Security & compliance tasks
         ├── webserver/          # Nginx proxy deployment
         └── app_deploy/         # Application artifact extraction
-Use code with caution.🛠️ PrerequisitesEnsure your deployment workstation has the following tools installed and configured (p. 4):AWS CLI v2 configured with necessary provisioning permissions (p. 4).Terraform v1.7+ (p. 4)Ansible v2.15+ (p. 4)Python packages: boto3 and botocore (required for AWS dynamic inventory) (p. 4).🚀 Deployment Steps1. Bootstrap the Remote State BackendTerraform state must be stored securely with locking to prevent team state corruption (p. 5). Execute these commands once to prepare your backend infrastructure (p. 5):bash# Create the S3 bucket
+
+🛠️ PrerequisitesEnsure your deployment workstation has the following tools installed and configured (p. 4):AWS CLI v2 configured with necessary provisioning permissions (p. 4).Terraform v1.7+ (p. 4)Ansible v2.15+ (p. 4)Python packages: boto3 and botocore (required for AWS dynamic inventory) (p. 4).🚀 Deployment Steps1. Bootstrap the Remote State BackendTerraform state must be stored securely with locking to prevent team state corruption (p. 5). Execute these commands once to prepare your backend infrastructure (p. 5):bash# Create the S3 bucket
 aws s3api create-bucket --bucket adi-lab-tfstate-2026 --region us-east-1
 
 # Enable bucket versioning
