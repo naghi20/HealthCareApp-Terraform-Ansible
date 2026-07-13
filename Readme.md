@@ -176,6 +176,12 @@ aws dynamodb create-table \
 Open `terraform/security-groups.tf` and replace `<YOUR_PUBLIC_IP>` with your workstation's public IP address to lock down SSH access.
 
 Store your desired database password securely in AWS Secrets Manager so it remains uncommitted in version control:
+aws secretsmanager create-secret \
+  --name lab/db-password \
+  --secret-string "MySecurePassword123!" \
+  --region us-east-1
+
+
 ```bash
 export TF_VAR_db_password=$(aws secretsmanager get-secret-value \
   --secret-id lab/db-password --query SecretString --output text)
